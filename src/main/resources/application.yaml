@@ -16,12 +16,11 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true 
   h2:
     console:
       enabled: true
       path: /h2-console
-  jpa:
-    show-sql: true
 
 ---
 spring:
@@ -35,7 +34,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update   # en entrega se permite; en serio usarías migraciones
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
