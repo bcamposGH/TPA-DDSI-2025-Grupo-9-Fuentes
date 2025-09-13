@@ -7,7 +7,6 @@ import ar.edu.utn.dds.k3003.facades.dtos.HechoDTO;
 import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 import ar.edu.utn.dds.k3003.model.Coleccion;
 import ar.edu.utn.dds.k3003.model.Hecho;
-import ar.edu.utn.dds.k3003.model.Pdi;
 import ar.edu.utn.dds.k3003.repository.HechosRepository;
 import ar.edu.utn.dds.k3003.repository.PdIRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepository;
@@ -32,12 +31,10 @@ public class Fachada implements FachadaFuente {
     private ColeccionRepository coleccionRepository;
     private HechosRepository hechosRepository;
     private FachadaProcesadorPdI procesadorPdI;
-    private PdIRepository pdiRepository;
-
-  protected Fachada() {
+    protected Fachada() {
     this.coleccionRepository = new ColeccionRepositoryMem();
     this.hechosRepository = new HechosRepositoryMem();
-    this.pdiRepository = new PdIRepositoryMem();
+    new PdIRepositoryMem();
   }
 
   @Autowired
@@ -50,7 +47,6 @@ public class Fachada implements FachadaFuente {
         this.coleccionRepository = coleccionRepository;
         this.hechosRepository = hechosRepository;
         this.procesadorPdI = procesadorPdI;
-        this.pdiRepository = pdiRepository;
       }
 
   @Override
@@ -135,64 +131,21 @@ public class Fachada implements FachadaFuente {
 
   @Override
   public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
+      // 1. Procesar en el servicio externo
+      PdIDTO pdiProcesada = procesadorPdI.procesar(pdIDTO);
 
-    // Verificar que el repositorio de hechos esté inicializado
-    if (this.hechosRepository == null) {
-        throw new IllegalStateException("Repositorio de hechos no inicializado");
-    }
-    // Verificar que el repositorio de PdI esté inicializado
-    if (this.pdiRepository == null) {
-        throw new IllegalStateException("Repositorio de PdI no inicializado");
-    }
-    
-    // Verificar que el procesador esté inicializado
-    if (this.procesadorPdI == null) {
-        throw new IllegalStateException("Procesador no inicializado");
-    }
+      // 2. Buscar el hecho
+      Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
+          .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
 
-    // Procesar la PdI y verificar su validez
-    PdIDTO pdiValida = procesadorPdI.procesar(pdIDTO);
-    if (pdiValida == null) {
-        throw new IllegalStateException("La PdI no es válida");
-    }
+      // 3. Guardar solo el ID de la PdI procesada
+      hecho.agregarPdI(pdiProcesada.id());
+      hechosRepository.save(hecho);
 
-    Pdi pdi = new Pdi(
-        java.util.UUID.randomUUID().toString(),
-        this.hechosRepository.findById(pdIDTO.hechoId())
-            .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId())),
-        pdIDTO.descripcion(),
-        pdIDTO.lugar(),
-        pdIDTO.momento(),
-        pdIDTO.contenido(),
-        pdIDTO.etiquetas()
-    );
-
-    pdiRepository.save(pdi);
-
-    // 1. Verificar que el hecho existe
-    if (pdi.getHecho() == null) {
-        throw new IllegalArgumentException("El hecho no puede ser nulo");
-    }
-
-    Hecho hecho = hechosRepository.findById(pdi.getHecho().getId())
-    .orElseThrow(() -> new IllegalStateException("No existe el hecho con ID: " + pdi.getHecho().getId()));
-
-    // 5. Agregar la PdI al hecho
-    hecho.agregarPdI(pdi.getId());
-
-    // 6. Guardar el hecho actualizado en el repositorio
-    hechosRepository.save(hecho);
-    // 7. Retornar la PdI procesada
-    return new PdIDTO(
-        pdi.getId(),
-        pdi.getHecho().getId(),
-        pdi.getDescripcion(),
-        pdi.getUbicacion(),
-        pdi.getFecha(),
-        pdi.getContenido(),
-        pdi.getEtiquetas()
-    );
+      // 4. Retornar la PdI procesada (para que el caller tenga la info)
+      return pdiProcesada;
   }
+
 
   public void censurar(String hechoId) {
     Hecho hecho = hechosRepository.findById(hechoId)
