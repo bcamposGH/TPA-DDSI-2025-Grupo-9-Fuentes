@@ -7,4 +7,5 @@ public interface ColeccionRepository{
     Optional<Coleccion> findById(String id);
     Coleccion save(Coleccion coleccion);
     List<Coleccion> findAll();
+    void deleteAll();
 }

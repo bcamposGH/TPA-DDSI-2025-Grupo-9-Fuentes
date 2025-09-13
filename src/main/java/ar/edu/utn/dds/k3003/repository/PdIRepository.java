@@ -7,4 +7,5 @@ public interface PdIRepository{
     Optional<Pdi> findById(String id);
     Pdi save(Pdi pdi);
     List<Pdi> findAllByHechoId(String hechoId);
+    void deleteAll();
 }

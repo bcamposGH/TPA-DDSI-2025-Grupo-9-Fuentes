@@ -8,4 +8,5 @@ public interface HechosRepository{
     Hecho save(Hecho hecho);
     List<Hecho> findAllByColeccionNombre(String coleccionNombre);
     List<Hecho> findAll();
+    void deleteAll();
 }
