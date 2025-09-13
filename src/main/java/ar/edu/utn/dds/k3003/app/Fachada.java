@@ -1,8 +1,6 @@
 package ar.edu.utn.dds.k3003.app;
 
-import io.micrometer.core.annotation.Counted;
-import io.micrometer.core.annotation.Timed;
-
+import ar.edu.utn.dds.k3003.config.HechoMetrics;
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
 import ar.edu.utn.dds.k3003.facades.dtos.ColeccionDTO;
@@ -34,6 +32,9 @@ public class Fachada implements FachadaFuente {
     private ColeccionRepository coleccionRepository;
     private HechosRepository hechosRepository;
     private FachadaProcesadorPdI procesadorPdI;
+    @Autowired
+    private HechoMetrics metrics;
+
     protected Fachada() {
     this.coleccionRepository = new ColeccionRepositoryMem();
     this.hechosRepository = new HechosRepositoryMem();
@@ -53,8 +54,6 @@ public class Fachada implements FachadaFuente {
       }
 
   @Transactional
-  @Timed(value = "coleccion.agregar.time", description = "Tiempo para agregar una coleccion")
-  @Counted(value = "coleccion.agregar.count", description = "Cantidad de veces que se agrega una coleccion")
   @Override
   public ColeccionDTO agregar(ColeccionDTO coleccionDTO) {
     if (this.coleccionRepository.findById(coleccionDTO.nombre()).isPresent()){
@@ -76,6 +75,8 @@ public class Fachada implements FachadaFuente {
     return new ColeccionDTO(coleccion.getNombre(),coleccion.getDescripcion());
   }
 
+
+
   @Override
   @Transactional
   public HechoDTO agregar(HechoDTO hechoDTO) {
@@ -94,6 +95,7 @@ public class Fachada implements FachadaFuente {
     // Guardar el hecho en el repositorio
 
     this.hechosRepository.save(hecho);
+    metrics.registrarHechoCreado();
 
     return new HechoDTO(
         hecho.getId(),
