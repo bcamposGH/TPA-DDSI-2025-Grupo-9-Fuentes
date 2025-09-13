@@ -1,5 +1,8 @@
 package ar.edu.utn.dds.k3003.app;
 
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
+
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
 import ar.edu.utn.dds.k3003.facades.dtos.ColeccionDTO;
@@ -49,6 +52,9 @@ public class Fachada implements FachadaFuente {
         this.procesadorPdI = procesadorPdI;
       }
 
+  @Transactional
+  @Timed(value = "coleccion.agregar.time", description = "Tiempo para agregar una coleccion")
+  @Counted(value = "coleccion.agregar.count", description = "Cantidad de veces que se agrega una coleccion")
   @Override
   public ColeccionDTO agregar(ColeccionDTO coleccionDTO) {
     if (this.coleccionRepository.findById(coleccionDTO.nombre()).isPresent()){

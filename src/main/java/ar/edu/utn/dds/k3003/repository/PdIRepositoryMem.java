@@ -31,8 +31,11 @@ public class PdIRepositoryMem implements PdIRepository {
                       .collect(Collectors.toList());
     }
     public List<Pdi> findAll() {
-        // Implementation for getting all Pdis
         return new ArrayList<>(pdiList);
+    }
+    @Override
+    public void deleteAll() {
+        pdiList.clear();
     }
 
 }

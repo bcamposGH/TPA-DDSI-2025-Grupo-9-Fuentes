@@ -37,4 +37,9 @@ public class HechosRepositoryMem implements HechosRepository {
   public List<Hecho> findAllByColeccionNombre(String coleccionNombre) {
     return this.hechos.stream().filter(h -> h.getColeccion() != null && h.getColeccion().getNombre().equals(coleccionNombre)).toList();
   }
+
+  @Override
+  public void deleteAll() {
+    hechos.clear();
+  }
 }
