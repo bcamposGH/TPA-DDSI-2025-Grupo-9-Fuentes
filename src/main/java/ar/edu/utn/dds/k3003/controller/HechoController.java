@@ -63,4 +63,10 @@ public class HechoController {
     public ResponseEntity<List<PdIDTO>> obtenerPdIsPorHecho(@PathVariable String id) {
         return ResponseEntity.ok(fachada.buscarPdIsPorHecho(id));
     }
+
+    @PostMapping("/pdis")
+    public ResponseEntity<PdIDTO> crearPdI(@RequestBody PdIDTO pdi) {
+        PdIDTO procesada = fachada.agregar(pdi);
+        return ResponseEntity.ok(procesada);
+    }
 }

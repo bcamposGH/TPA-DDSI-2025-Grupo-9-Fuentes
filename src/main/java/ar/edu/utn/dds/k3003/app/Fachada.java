@@ -133,6 +133,9 @@ public class Fachada implements FachadaFuente {
   public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
       // 1. Procesar en el servicio externo
       PdIDTO pdiProcesada = procesadorPdI.procesar(pdIDTO);
+      if (pdiProcesada == null) {
+          throw new IllegalStateException("La PdI no es válida");
+      }
 
       // 2. Buscar el hecho
       Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
@@ -193,12 +196,11 @@ public List<PdIDTO> buscarPdIsPorHecho(String hechoId) {
     return hecho.getPdiIds().stream()
         .map(pdiId -> {
             try {
-                return procesadorPdI.buscarPdIPorId(pdiId); // 👈 este método hay que agregarlo en el proxy
+                return procesadorPdI.buscarPdIPorId(pdiId);
             } catch (Exception e) {
                 throw new RuntimeException("Error al buscar PdI " + pdiId, e);
             }
         })
         .toList();
       }
-
     }
