@@ -182,4 +182,23 @@ public class Fachada implements FachadaFuente {
         .map(coleccion -> new ColeccionDTO(coleccion.getNombre(), coleccion.getDescripcion()))
         .toList();
   }
-}
+
+
+public List<PdIDTO> buscarPdIsPorHecho(String hechoId) {
+    // 1. Buscar el hecho
+    Hecho hecho = hechosRepository.findById(hechoId)
+        .orElseThrow(() -> new NoSuchElementException("Hecho no encontrado: " + hechoId));
+
+    // 2. Para cada ID, consultar al ProcesadorPdI
+    return hecho.getPdiIds().stream()
+        .map(pdiId -> {
+            try {
+                return procesadorPdI.buscarPdIPorId(pdiId); // 👈 este método hay que agregarlo en el proxy
+            } catch (Exception e) {
+                throw new RuntimeException("Error al buscar PdI " + pdiId, e);
+            }
+        })
+        .toList();
+      }
+
+    }

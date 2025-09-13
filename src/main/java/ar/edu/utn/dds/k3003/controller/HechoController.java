@@ -3,16 +3,12 @@ package ar.edu.utn.dds.k3003.controller;
 import ar.edu.utn.dds.k3003.app.Fachada;
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.dtos.HechoDTO;
+import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
+
 import java.util.Map;
 import java.util.List;
 
@@ -62,4 +58,9 @@ public class HechoController {
         HechoDTO hechoActualizado = fachadaFuente.buscarHechoXId(id);
         return ResponseEntity.ok(hechoActualizado);
     }
-} 
+
+    @GetMapping("/hecho/{id}/pdis")
+    public ResponseEntity<List<PdIDTO>> obtenerPdIsPorHecho(@PathVariable String id) {
+        return ResponseEntity.ok(fachada.buscarPdIsPorHecho(id));
+    }
+}
