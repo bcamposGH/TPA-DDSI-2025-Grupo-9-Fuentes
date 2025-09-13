@@ -1,6 +1,6 @@
 package ar.edu.utn.dds.k3003.app;
 
-import ar.edu.utn.dds.k3003.config.HechoMetrics;
+import ar.edu.utn.dds.k3003.config.Metricas;
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
 import ar.edu.utn.dds.k3003.facades.dtos.ColeccionDTO;
@@ -33,7 +33,7 @@ public class Fachada implements FachadaFuente {
     private HechosRepository hechosRepository;
     private FachadaProcesadorPdI procesadorPdI;
     @Autowired
-    private HechoMetrics metrics;
+    private Metricas metrics;
 
     protected Fachada() {
     this.coleccionRepository = new ColeccionRepositoryMem();
@@ -163,6 +163,7 @@ public class Fachada implements FachadaFuente {
     .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + hechoId));
 
     hecho.censurar();
+    metrics.registrarHechoCensurado();
     hechosRepository.save(hecho);
   }
 

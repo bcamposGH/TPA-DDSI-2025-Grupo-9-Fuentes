@@ -4,6 +4,9 @@ import ar.edu.utn.dds.k3003.app.Fachada;
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.dtos.HechoDTO;
 import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
+import io.micrometer.core.instrument.Timer;
+import ar.edu.utn.dds.k3003.config.Metricas;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +21,13 @@ public class HechoController {
 
     private final FachadaFuente fachadaFuente;
     private final Fachada fachada;
+    private final Metricas metricas;
 
     @Autowired
-    public HechoController(FachadaFuente fachadaFuente, Fachada fachada) {
+    public HechoController(FachadaFuente fachadaFuente, Fachada fachada, Metricas metricas) {
         this.fachadaFuente = fachadaFuente;
         this.fachada = fachada;
+        this.metricas = metricas;
     }
 
     @GetMapping("/colecciones/{coleccionId}/hechos")
@@ -32,8 +37,13 @@ public class HechoController {
 
     @GetMapping("/hechos")
     public ResponseEntity<List<HechoDTO>> obtenerHechos() {
-        List<HechoDTO> hechos = fachada.hechos();
-        return ResponseEntity.ok(hechos);
+        Timer.Sample timer = metricas.startTimer();
+         try {
+             List<HechoDTO> hechos = fachada.hechos();
+             return ResponseEntity.ok(hechos);
+         } finally {
+             metricas.stopTimer(timer, "hechos.listar");
+         }
     }
 
     @GetMapping("/hecho/{id}")
@@ -44,12 +54,16 @@ public class HechoController {
 
     @PostMapping("/hecho")
     public ResponseEntity<HechoDTO> crearHecho(@RequestBody HechoDTO hecho) {
-        return ResponseEntity.ok(fachadaFuente.agregar(hecho));
+        Timer.Sample timer = metricas.startTimer();
+        try {
+            return ResponseEntity.ok(fachadaFuente.agregar(hecho));
+        } finally {
+            metricas.stopTimer(timer, "hechos.crear");
+        }
     }
 
     @PatchMapping("/hecho/{id}")
     public ResponseEntity<HechoDTO> actualizarHecho(@PathVariable String id, @RequestBody Map<String, String> body) {
-
         String nuevoEstado = body.get("estado");
 
         if (nuevoEstado.equals("borrado")) {

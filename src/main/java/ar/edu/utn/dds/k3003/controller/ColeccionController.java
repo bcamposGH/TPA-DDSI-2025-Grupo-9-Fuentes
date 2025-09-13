@@ -1,10 +1,13 @@
 package ar.edu.utn.dds.k3003.controller;
 
+import ar.edu.utn.dds.k3003.config.Metricas;
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.dtos.ColeccionDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.micrometer.core.instrument.Timer;
+
 
 import java.util.List;
 
@@ -13,15 +16,23 @@ import java.util.List;
 public class ColeccionController {
 
     private final FachadaFuente fachadaFuente;
+    private final Metricas metricas;
 
     @Autowired
-    public ColeccionController(FachadaFuente fachadaFuente) {
+    public ColeccionController(FachadaFuente fachadaFuente, Metricas metricas) {
         this.fachadaFuente = fachadaFuente;
+        this.metricas = metricas;
     }
 
     @GetMapping
     public ResponseEntity<List<ColeccionDTO>> listarColecciones() {
-        return ResponseEntity.ok(fachadaFuente.colecciones());
+        Timer.Sample timer = metricas.startTimer();
+        try {
+            List<ColeccionDTO> colecciones = fachadaFuente.colecciones();
+            return ResponseEntity.ok(colecciones);
+        } finally {
+            metricas.stopTimer(timer, "colecciones.listar");
+        }
     }
 
     @GetMapping("/{nombre}")
@@ -31,6 +42,11 @@ public class ColeccionController {
 
     @PostMapping
     public ResponseEntity<ColeccionDTO> crearColeccion(@RequestBody ColeccionDTO coleccion) {
-        return ResponseEntity.ok(fachadaFuente.agregar(coleccion));
+        Timer.Sample timer = metricas.startTimer();
+        try {
+            return ResponseEntity.ok(fachadaFuente.agregar(coleccion));
+        } finally {
+            metricas.stopTimer(timer, "colecciones.crear");
+        }
     }
 } 
