@@ -14,6 +14,7 @@ import ar.edu.utn.dds.k3003.repository.ColeccionRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepositoryMem;
 import ar.edu.utn.dds.k3003.repository.HechosRepositoryMem;
 import ar.edu.utn.dds.k3003.repository.PdIRepositoryMem;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -57,7 +58,8 @@ public class Fachada implements FachadaFuente {
     if (this.coleccionRepository.findById(coleccionDTO.nombre()).isPresent()){
       throw new IllegalArgumentException(coleccionDTO.nombre() + " ya existe");
     }
-    val coleccion = new Coleccion(coleccionDTO.nombre(), coleccionDTO.descripcion());
+    val coleccion = new Coleccion(coleccionDTO.nombre(), coleccionDTO.descripcion(), null);
+    coleccion.setFechaModificacion(java.time.LocalDateTime.now());
     this.coleccionRepository.save(coleccion);
     return new ColeccionDTO(coleccion.getNombre(), coleccion.getDescripcion());
   }
@@ -73,6 +75,7 @@ public class Fachada implements FachadaFuente {
   }
 
   @Override
+  @Transactional
   public HechoDTO agregar(HechoDTO hechoDTO) {
 
     Hecho hecho = new Hecho(

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Data;
 
 @Data
@@ -20,9 +22,10 @@ public class Coleccion {
     // Constructor por defecto requerido por JPA
   }
 
-  public Coleccion(String nombre, String descripcion) {
+  public Coleccion(String nombre, String descripcion, LocalDateTime fechaModificacion) {
     this.nombre = nombre;
     this.descripcion = descripcion;
+    this.fechaModificacion = fechaModificacion;
   }
 
   //Getters y Setters
@@ -44,4 +47,10 @@ public class Coleccion {
   public void setDescripcion(String descripcion) {
     this.descripcion = descripcion;
   }
+
+  @PrePersist
+  @PreUpdate
+  public void actualizarFechaModificacion() {
+    this.fechaModificacion = LocalDateTime.now();
+}
 }
