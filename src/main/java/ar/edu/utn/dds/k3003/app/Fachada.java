@@ -178,7 +178,7 @@ public class Fachada implements FachadaFuente {
     .orElseThrow(() -> new IllegalStateException("No existe el hecho con ID: " + pdi.getHecho().getId()));
 
     // 5. Agregar la PdI al hecho
-    hecho.agregarPdI(pdi);
+    hecho.agregarPdI(pdi.getId());
 
     // 6. Guardar el hecho actualizado en el repositorio
     hechosRepository.save(hecho);

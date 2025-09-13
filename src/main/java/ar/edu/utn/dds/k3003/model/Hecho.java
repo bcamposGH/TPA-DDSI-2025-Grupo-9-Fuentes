@@ -37,7 +37,9 @@ public class Hecho {
     private Coleccion coleccion;
 
     @ElementCollection
-    private List<String> pdis = new ArrayList<>();
+    @CollectionTable(name = "hecho_pdis", joinColumns = @JoinColumn(name = "hecho_id"))
+    @Column(name = "pdi_id")
+    private List<String> pdiIds = new ArrayList<>();
 
     protected Hecho() {
         this.estado = "activo";
@@ -58,8 +60,8 @@ public class Hecho {
         this.contenido = "";
     }
 
-    public void agregarPdI(Pdi pdi) {
-        this.pdis.add(pdi.getId());
+    public void agregarPdI(String pdiId) {
+        this.pdiIds.add(pdiId);
     }
 
     public void censurar() {

@@ -9,6 +9,9 @@ import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 
 public interface ProcesadorPdIRetrofitClient {
 
+    @GET("pdis")
+    Call<List<PdIDTO>> obtenerTodos();
+
     @GET("pdis/{id}")
     Call<PdIDTO> buscarPorId(@Path("id") String id);
 
@@ -16,5 +19,5 @@ public interface ProcesadorPdIRetrofitClient {
     Call<List<PdIDTO>> buscarPorHecho(@Query("hechoId") String hechoId);
 
     @POST("pdis")
-    Call<PdIDTO> procesarPdI(@Body PdIDTO pdi);
+    Call<PdIDTO> procesar(@Body PdIDTO pdi);
 }

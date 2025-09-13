@@ -3,6 +3,7 @@ package ar.edu.utn.dds.k3003.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -23,6 +24,7 @@ public class Pdi {
     private String ubicacion;
     private LocalDateTime fecha;
     private String contenido;
+    @ElementCollection
     private List<String> etiquetas;
 
     public Pdi() {

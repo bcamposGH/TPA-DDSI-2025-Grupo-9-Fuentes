@@ -1,63 +1,71 @@
 package ar.edu.utn.dds.k3003.clients;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
+import ar.edu.utn.dds.k3003.facades.FachadaSolicitudes;
 import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
-import io.javalin.http.HttpStatus;
-import lombok.SneakyThrows;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-
-public class ProcesadorPdIProxy {
+public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
     private final String endpoint;
     private final ProcesadorPdIRetrofitClient service;
 
     public ProcesadorPdIProxy(ObjectMapper objectMapper) {
         var env = System.getenv();
-        this.endpoint = env.getOrDefault("URL_PDIS", "http://localhost:8082/");
+        this.endpoint = env.get("URL_PROCESADOR_PDI");
 
-        var retrofit =
-                new Retrofit.Builder()
-                        .baseUrl(this.endpoint)
-                        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-                        .build();
+        var retrofit = new Retrofit.Builder()
+                .baseUrl(this.endpoint)
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .build();
 
-        this.service = ((Retrofit) retrofit).create(ProcesadorPdIRetrofitClient.class);
+        this.service = retrofit.create(ProcesadorPdIRetrofitClient.class);
     }
 
-    @SneakyThrows
-    public PdIDTO crear(PdIDTO dto) {
-        Response<PdIDTO> execute = service.procesarPdI(dto).execute();
-        if (execute.isSuccessful()) {
-            return execute.body();
+    @Override
+    public PdIDTO procesar(PdIDTO pdiDTO) {
+        try {
+            Response<PdIDTO> response = service.procesar(pdiDTO).execute();
+            if (response.isSuccessful()) {
+                return response.body();
+            }
+            throw new RuntimeException("Error en ProcesadorPdI: " + response.code());
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
         }
-        throw new RuntimeException("Error creando PdI en ProcesadorPdI");
     }
 
-    @SneakyThrows
-    public PdIDTO buscarPorId(String id) throws NoSuchElementException {
-        Response<PdIDTO> execute = service.buscarPorId(id).execute();
-
-        if (execute.isSuccessful()) {
-            return execute.body();
+    @Override
+    public PdIDTO buscarPdIPorId(String pdiId) {
+        try {
+            Response<PdIDTO> response = service.buscarPorId(pdiId).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                return response.body();
+            }
+            throw new RuntimeException("PdI no encontrado o error en ProcesadorPdI: " + response.code());
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
         }
-        if (execute.code() == HttpStatus.NOT_FOUND.getCode()) {
-            throw new NoSuchElementException("No se encontró el PdI con id " + id);
+    }
+    
+    @Override
+    public java.util.List<PdIDTO> buscarPorHecho(String hechoId) {
+        try {
+            Response<java.util.List<PdIDTO>> response = service.buscarPorHecho(hechoId).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                return response.body();
+            }
+            throw new RuntimeException("PdIs no encontrados o error en ProcesadorPdI: " + response.code());
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
         }
-        throw new RuntimeException("Error conectando con ProcesadorPdI");
     }
 
-    @SneakyThrows
-    public List<PdIDTO> buscarPorHecho(String hechoId) {
-        Response<List<PdIDTO>> execute = service.buscarPorHecho(hechoId).execute();
-        if (execute.isSuccessful()) {
-            return execute.body();
-        }
-        throw new RuntimeException("Error consultando PdIs por hecho " + hechoId);
+    @Override
+    public void setFachadaSolicitudes(FachadaSolicitudes fachadaSolicitudes) {
+        return;
     }
 }
