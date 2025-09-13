@@ -86,7 +86,6 @@ public class Fachada implements FachadaFuente {
         hechoDTO.fecha(),
         hechoDTO.origen()
     );
-    hecho.setId(java.util.UUID.randomUUID().toString());
     // Guardar el hecho en el repositorio
 
     this.hechosRepository.save(hecho);
