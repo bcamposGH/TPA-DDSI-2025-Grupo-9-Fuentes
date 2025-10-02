@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,21 +139,33 @@ public class Fachada implements FachadaFuente {
 @Override
 @Transactional
 public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
-    // 1. Buscar el hecho
+    // 1. Validar que exista el hecho
     Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
         .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
 
-    // 2. Pedir al Procesador que procese y guarde la PdI
-    PdIDTO procesada = procesadorPdI.procesar(pdIDTO);
+    // 2. Generar el id en la Fuente
+    String nuevoId = UUID.randomUUID().toString();
+    PdIDTO dtoConId = new PdIDTO(
+        nuevoId,
+        pdIDTO.hechoId(),
+        pdIDTO.descripcion(),
+        pdIDTO.lugar(),
+        pdIDTO.momento(),
+        pdIDTO.contenido(),
+        pdIDTO.etiquetas()
+    );
+
+    // 3. Enviar al Procesador para que valide/persista
+    PdIDTO procesada = procesadorPdI.procesar(dtoConId);
     if (procesada == null) {
         throw new IllegalStateException("La PdI no es válida");
     }
 
-    // 3. Guardar el ID en el hecho
+    // 4. Guardar el id en el Hecho
     hecho.agregarPdI(procesada.id());
     hechosRepository.save(hecho);
 
-    // 4. Devolver la PdI procesada
+    // 5. Retornar la PdI procesada
     return procesada;
 }
 
