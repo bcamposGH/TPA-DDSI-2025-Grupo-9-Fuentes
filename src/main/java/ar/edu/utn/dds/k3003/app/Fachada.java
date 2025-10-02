@@ -9,7 +9,6 @@ import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 import ar.edu.utn.dds.k3003.model.Coleccion;
 import ar.edu.utn.dds.k3003.model.Hecho;
 import ar.edu.utn.dds.k3003.repository.HechosRepository;
-import ar.edu.utn.dds.k3003.repository.PdIRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepositoryMem;
 import ar.edu.utn.dds.k3003.repository.HechosRepositoryMem;
@@ -45,8 +44,7 @@ public class Fachada implements FachadaFuente {
   public Fachada(
       ColeccionRepository coleccionRepository,
       HechosRepository hechosRepository,
-      @Autowired(required = false) FachadaProcesadorPdI procesadorPdI,
-      PdIRepository pdiRepository
+      @Autowired(required = false) FachadaProcesadorPdI procesadorPdI
       ){
         this.coleccionRepository = coleccionRepository;
         this.hechosRepository = hechosRepository;
@@ -137,25 +135,26 @@ public class Fachada implements FachadaFuente {
     this.procesadorPdI = procesador;
   }
 
-  @Override
-  public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
-      // 1. Procesar en el servicio externo
-      PdIDTO pdiProcesada = procesadorPdI.procesar(pdIDTO);
-      if (pdiProcesada == null) {
-          throw new IllegalStateException("La PdI no es válida");
-      }
+@Override
+@Transactional
+public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
+    // 1. Buscar el hecho
+    Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
+        .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
 
-      // 2. Buscar el hecho
-      Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
-          .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
+    // 2. Pedir al Procesador que procese y guarde la PdI
+    PdIDTO procesada = procesadorPdI.procesar(pdIDTO);
+    if (procesada == null) {
+        throw new IllegalStateException("La PdI no es válida");
+    }
 
-      // 3. Guardar solo el ID de la PdI procesada
-      hecho.agregarPdI(pdiProcesada.id());
-      hechosRepository.save(hecho);
+    // 3. Guardar el ID en el hecho
+    hecho.agregarPdI(procesada.id());
+    hechosRepository.save(hecho);
 
-      // 4. Retornar la PdI procesada (para que el caller tenga la info)
-      return pdiProcesada;
-  }
+    // 4. Devolver la PdI procesada
+    return procesada;
+}
 
 
   public void censurar(String hechoId) {
@@ -195,21 +194,12 @@ public class Fachada implements FachadaFuente {
         .toList();
   }
 
-
-public List<PdIDTO> buscarPdIsPorHecho(String hechoId) {
-    // 1. Buscar el hecho
-    Hecho hecho = hechosRepository.findById(hechoId)
+    public List<PdIDTO> buscarPdIsPorHecho(String hechoId) {
+    // 1. Validar que exista el hecho en esta fuente
+    hechosRepository.findById(hechoId)
         .orElseThrow(() -> new NoSuchElementException("Hecho no encontrado: " + hechoId));
 
-    // 2. Para cada ID, consultar al ProcesadorPdI
-    return hecho.getPdiIds().stream()
-        .map(pdiId -> {
-            try {
-                return procesadorPdI.buscarPdIPorId(pdiId);
-            } catch (Exception e) {
-                throw new RuntimeException("Error al buscar PdI " + pdiId, e);
-            }
-        })
-        .toList();
-      }
-    }
+    // 2. Delegar directamente al ProcesadorPdI (proxy)
+    return procesadorPdI.buscarPorHecho(hechoId);
+  }
+}

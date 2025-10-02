@@ -9,6 +9,7 @@ import ar.edu.utn.dds.k3003.config.Metricas;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,8 +80,8 @@ public class HechoController {
     }
 
     @PostMapping("/pdis")
-    public ResponseEntity<PdIDTO> crearPdI(@RequestBody PdIDTO pdi) {
+    public ResponseEntity<PdIDTO> agregarPdI(@RequestBody PdIDTO pdi) {
         PdIDTO procesada = fachada.agregar(pdi);
-        return ResponseEntity.ok(procesada);
+        return ResponseEntity.status(HttpStatus.CREATED).body(procesada);
     }
 }
