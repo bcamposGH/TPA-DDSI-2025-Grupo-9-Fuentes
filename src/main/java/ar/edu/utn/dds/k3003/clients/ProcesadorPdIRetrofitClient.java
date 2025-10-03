@@ -16,7 +16,7 @@ public interface ProcesadorPdIRetrofitClient {
     Call<PdIDTO> buscarPorId(@Path("id") String id);
 
     @GET("pdis")
-    Call<List<PdIDTO>> buscarPorHecho(@Query("hecho") String hechoId);
+    Call<List<PdIDTO>> buscarPorHecho(@Query("hechoId") String hechoId);
 
     @POST("pdis")
     Call<PdIDTO> procesar(@Body PdIDTO pdi);

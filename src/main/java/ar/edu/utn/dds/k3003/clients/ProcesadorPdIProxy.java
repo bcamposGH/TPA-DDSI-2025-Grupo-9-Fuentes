@@ -17,7 +17,7 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
     public ProcesadorPdIProxy(ObjectMapper objectMapper) {
         var env = System.getenv();
-        this.endpoint = "https://dds2025-grupo9-procesadorpdi.onrender.com/api/";
+        this.endpoint = env.get("URL_PROCESADOR_PDI");
 
         // Configurar el ObjectMapper
         objectMapper.findAndRegisterModules(); // soporte para LocalDateTime (ISO-8601)
