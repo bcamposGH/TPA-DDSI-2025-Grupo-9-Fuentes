@@ -66,7 +66,7 @@ public class HechoSuscriber {
         if (!activo) return;
 
         if (channel != null && consumerTag != null) {
-            channel.basicCancel(consumerTag); // cancelar consumer
+            channel.basicCancel(consumerTag);
         }
         if (channel != null && channel.isOpen()) {
             channel.close();
