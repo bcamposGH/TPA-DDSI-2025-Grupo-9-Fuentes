@@ -4,6 +4,8 @@ import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
 import ar.edu.utn.dds.k3003.facades.FachadaSolicitudes;
 import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -14,6 +16,8 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
     private final ProcesadorPdIRetrofitClient service;
 
     public ProcesadorPdIProxy(ObjectMapper objectMapper) {
+
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         var env = System.getenv();
         this.endpoint = env.get("URL_PROCESADOR_PDI");
 
