@@ -5,6 +5,8 @@ import ar.edu.utn.dds.k3003.facades.FachadaSolicitudes;
 import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -19,8 +21,9 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
         var env = System.getenv();
         this.endpoint = env.get("URL_PROCESADOR_PDI");
 
-        // Configurar el ObjectMapper
-        objectMapper.findAndRegisterModules(); // soporte para LocalDateTime (ISO-8601)
+        // Configurar el ObjectMapper para fechas y nombres en snake_case
+        objectMapper.registerModule(new JavaTimeModule()); // soporte para LocalDateTime
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // 🔑 serializa como string ISO-8601
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.objectMapper = objectMapper;
 
@@ -82,6 +85,5 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
     @Override
     public void setFachadaSolicitudes(FachadaSolicitudes fachadaSolicitudes) {
-    
     }
 }
