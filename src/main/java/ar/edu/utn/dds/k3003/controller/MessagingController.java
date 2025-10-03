@@ -9,35 +9,48 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/messaging")
 public class MessagingController {
 
-    private final HechoSuscriber subscriber;
+    private final HechoSuscriber suscriber;
 
     @Autowired
-    public MessagingController(HechoSuscriber subscriber) {
-        this.subscriber = subscriber;
+    public MessagingController(HechoSuscriber suscriber) {
+        this.suscriber = suscriber;
     }
 
+    /**
+     * Inicia la suscripción al topic/cola configurada.
+     */
     @PostMapping("/start")
     public ResponseEntity<String> start() {
         try {
-            subscriber.start();
+            suscriber.start();
             return ResponseEntity.ok("✅ Suscripción activada");
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("❌ Error al activar: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body("❌ Error al activar: " + e.getMessage());
         }
     }
 
+    /**
+     * Detiene la suscripción activa, si existe.
+     */
     @PostMapping("/stop")
     public ResponseEntity<String> stop() {
         try {
-            subscriber.stop();
+            suscriber.stop();
             return ResponseEntity.ok("⏹️ Suscripción detenida");
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("❌ Error al detener: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body("❌ Error al detener: " + e.getMessage());
         }
     }
 
+    /**
+     * Consulta el estado actual de la suscripción.
+     */
     @GetMapping("/status")
     public ResponseEntity<String> status() {
-        return ResponseEntity.ok("Estado: " + (subscriber.isActivo() ? "Activo" : "Inactivo"));
+        return ResponseEntity.ok("Estado actual: " + (suscriber.isActivo() ? "Activo ✅" : "Inactivo ⏹️"));
     }
 }
