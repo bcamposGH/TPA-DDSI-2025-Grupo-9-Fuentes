@@ -9,13 +9,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class HechoSuscriber {
-    private Channel channel;
-    private Connection connection;
-    private String consumerTag;
-    private boolean activo = false;
 
     private final Fachada fachada;
     private final ObjectMapper objectMapper;
+
+    private Connection connection;
+    private Channel channel;
+    private String consumerTag;
+    private boolean activo = false;
 
     @Autowired
     public HechoSuscriber(Fachada fachada, ObjectMapper objectMapper) {
@@ -23,43 +24,62 @@ public class HechoSuscriber {
         this.objectMapper = objectMapper;
     }
 
-    public void start() throws Exception {
+    public synchronized void start() throws Exception {
         if (activo) return;
+
+        String queueName = System.getenv("QUEUE_NAME");
+        if (queueName == null || queueName.isBlank()) {
+            throw new IllegalStateException("QUEUE_NAME no está configurado");
+        }
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(System.getenv("QUEUE_HOST"));
         factory.setUsername(System.getenv("QUEUE_USERNAME"));
         factory.setPassword(System.getenv("QUEUE_PASSWORD"));
-        factory.setVirtualHost(System.getenv("QUEUE_USERNAME"));
+        factory.setVirtualHost(System.getenv("QUEUE_USERNAME")); // tipico en CloudAMQP
 
-        connection = factory.newConnection();
-        channel = connection.createChannel();
-        String queueName = System.getenv("QUEUE_NAME");
+        this.connection = factory.newConnection();
+        this.channel = connection.createChannel();
 
-        consumerTag = channel.basicConsume(queueName, false, (tag, message) -> {
-            String json = new String(message.getBody());
-            HechoDTO hechoDTO = objectMapper.readValue(json, HechoDTO.class);
-            fachada.agregar(hechoDTO);
-            channel.basicAck(message.getEnvelope().getDeliveryTag(), false);
-        }, tag -> {});
+        this.consumerTag = channel.basicConsume(queueName, false, (tag, message) -> {
+            try {
+                String json = new String(message.getBody());
+                System.out.println("Hecho recibido: " + json);
 
-        activo = true;
-        System.out.println("✅ Suscripción iniciada");
+                HechoDTO hechoDTO = objectMapper.readValue(json, HechoDTO.class);
+                fachada.agregar(hechoDTO);
+
+                channel.basicAck(message.getEnvelope().getDeliveryTag(), false);
+            } catch (Exception e) {
+                e.printStackTrace();
+                channel.basicNack(message.getEnvelope().getDeliveryTag(), false, false);
+            }
+        }, tag -> {
+            System.out.println("Consumer cancelado: " + tag);
+        });
+
+        this.activo = true;
+        System.out.println("Suscripción iniciada con tag " + consumerTag);
     }
 
-    public void stop() throws Exception {
+    public synchronized void stop() throws Exception {
         if (!activo) return;
-        if (channel != null && consumerTag != null) {
-            channel.basicCancel(consumerTag);
-        }
-        if (channel != null) channel.close();
-        if (connection != null) connection.close();
 
+        if (channel != null && consumerTag != null) {
+            channel.basicCancel(consumerTag); // cancelar consumer
+        }
+        if (channel != null && channel.isOpen()) {
+            channel.close();
+        }
+        if (connection != null && connection.isOpen()) {
+            connection.close();
+        }
+
+        consumerTag = null;
         channel = null;
         connection = null;
-        consumerTag = null;
         activo = false;
-        System.out.println("⏹️ Suscripción detenida");
+        System.out.println("Suscripción detenida");
     }
 
     public boolean isActivo() {
