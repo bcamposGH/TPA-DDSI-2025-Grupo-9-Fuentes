@@ -3,6 +3,9 @@ package ar.edu.utn.dds.k3003.clients;
 import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
 import ar.edu.utn.dds.k3003.facades.FachadaSolicitudes;
 import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
+
+import org.springframework.web.server.ResponseStatusException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -10,6 +13,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import org.springframework.http.HttpStatus;
 
 public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
@@ -48,12 +52,21 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
                 return response.body();
             } else {
                 String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
-                throw new RuntimeException("Error en ProcesadorPdI: " + response.code() + " - " + error);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
+                // Propagar mismo status y mensaje que devolvió ProcesadorPdI
+                throw new ResponseStatusException(
+                    HttpStatus.valueOf(response.code()),
+                    "ProcesadorPdI → " + error
+            );
         }
+        } catch (Exception e) {
+        // Error de conexión o excepción inesperada
+            throw new ResponseStatusException(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "No se pudo conectar con ProcesadorPdI",
+                e
+        );
     }
+}
 
     @Override
     public PdIDTO buscarPdIPorId(String pdiId) {
