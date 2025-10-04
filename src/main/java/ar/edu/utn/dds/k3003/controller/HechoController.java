@@ -91,8 +91,32 @@ public class HechoController {
 
     @PostMapping("/pdis")
     public ResponseEntity<PdIDTO> agregarPdI(@RequestBody PdIDTO pdi) {
-        PdIDTO procesada = fachada.agregar(pdi);
-        return ResponseEntity.status(HttpStatus.CREATED).body(procesada);
+        System.out.println("[Fuente API] POST /api/pdis recibido con body:");
+        try {
+            System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(pdi));
+        } catch (Exception e) {
+            System.out.println(" No se pudo serializar el PdIDTO para log: " + e.getMessage());
+        }
+
+        try {
+            // Enviamos a la fachada
+            System.out.println("[Fuente → Fachada] Llamando a Fachada.agregar(...)");
+            PdIDTO procesada = fachada.agregar(pdi);
+
+            System.out.println("[Fachada → Fuente API] Respuesta recibida del ProcesadorPdI:");
+            try {
+                System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(procesada));
+            } catch (Exception e) {
+                System.out.println("No se pudo serializar la respuesta para log: " + e.getMessage());
+            }
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(procesada);
+
+        } catch (Exception e) {
+            System.out.println("[Fuente API] Error al procesar PdI: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
 }
