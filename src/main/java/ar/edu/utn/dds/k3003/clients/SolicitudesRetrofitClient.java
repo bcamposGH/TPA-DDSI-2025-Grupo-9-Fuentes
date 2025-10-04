@@ -8,6 +8,6 @@ import java.util.Map;
 
 public interface SolicitudesRetrofitClient {
 
-    @POST("hechos/hechos-sin-solicitudes")
+    @POST("solicitudes/hechos/hechos-sin-solicitudes")
     Call<HechosSinSolicitudesResponse> hechosSinSolicitudes(@Body Map<String, List<String>> ids);
 }

@@ -48,6 +48,9 @@ public class SolicitudesProxy {
             String jsonRequest = mapper.writeValueAsString(Map.of("ids", ids));
             System.out.println("📤 [Fuente → Solicitudes] Request JSON: " + jsonRequest);
 
+            System.out.println("🌐 [SolicitudesProxy] URL llamada: "
+                + service.hechosSinSolicitudes(Map.of("ids", ids)).request().url());
+            
             // Llamada HTTP
             Response<HechosSinSolicitudesResponse> response =
                     service.hechosSinSolicitudes(Map.of("ids", ids)).execute();
