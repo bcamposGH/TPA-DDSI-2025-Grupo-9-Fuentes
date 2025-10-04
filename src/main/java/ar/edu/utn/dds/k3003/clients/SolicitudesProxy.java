@@ -63,7 +63,7 @@ public class SolicitudesProxy {
             }
 
             if (response.isSuccessful() && response.body() != null) {
-                List<String> resultado = response.body().hechossinSolicitudes();
+                List<String> resultado = response.body().hechosSinSolicitudes();
                 System.out.println("✅ [Solicitudes → Fuente] Hechos sin solicitudes: " + resultado);
                 return resultado;
             }
