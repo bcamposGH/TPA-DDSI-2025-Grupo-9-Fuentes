@@ -27,7 +27,7 @@ public class MessagingController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
-                    .body("❌ Error al activar: " + e.getMessage());
+                    .body("Error al activar: " + e.getMessage());
         }
     }
 
@@ -42,7 +42,7 @@ public class MessagingController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
-                    .body("❌ Error al detener: " + e.getMessage());
+                    .body("Error al detener: " + e.getMessage());
         }
     }
 
