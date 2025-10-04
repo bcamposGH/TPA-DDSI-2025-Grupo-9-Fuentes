@@ -17,7 +17,9 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
     private final String endpoint;

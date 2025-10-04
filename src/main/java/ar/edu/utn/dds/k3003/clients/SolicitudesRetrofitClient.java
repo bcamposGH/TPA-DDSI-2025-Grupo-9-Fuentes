@@ -9,5 +9,5 @@ import java.util.Map;
 public interface SolicitudesRetrofitClient {
 
     @POST("hechos/hechos-sin-solicitudes")
-    Call<List<String>> hechosSinSolicitudes(@Body Map<String, List<String>> ids);
+    Call<HechosSinSolicitudesResponse> hechosSinSolicitudes(@Body Map<String, List<String>> ids);
 }
