@@ -15,4 +15,6 @@ public interface FachadaProcesadorPdI {
 
   void setFachadaSolicitudes(FachadaSolicitudes fachadaSolicitudes);
 
+  List<PdIDTO> obtenerTodos();
+
 }

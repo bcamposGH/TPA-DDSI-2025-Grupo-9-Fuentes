@@ -35,7 +35,12 @@ public class HechoController {
     public ResponseEntity<List<HechoDTO>> listarHechos(@PathVariable String coleccionId) {
         return ResponseEntity.ok(fachadaFuente.buscarHechosXColeccion(coleccionId));
     }
-
+    
+    @GetMapping("/colecciones/{coleccionId}/hechos-sin-solicitudes")
+    public ResponseEntity<List<HechoDTO>> hechosSinSolicitudes(@PathVariable String coleccionId) {
+        return ResponseEntity.ok(fachada.hechosSinSolicitudesPorColeccion(coleccionId));
+    }
+    
     @GetMapping("/hechos")
     public ResponseEntity<List<HechoDTO>> obtenerHechos() {
         Timer.Sample timer = metricas.startTimer();
@@ -79,9 +84,15 @@ public class HechoController {
         return ResponseEntity.ok(fachada.buscarPdIsPorHecho(id));
     }
 
+    @GetMapping("/pdis")
+    public ResponseEntity<List<PdIDTO>> obtenerTodosLosPdIs() {
+        return ResponseEntity.ok(fachada.obtenerTodosLosPdIs());
+}
+
     @PostMapping("/pdis")
     public ResponseEntity<PdIDTO> agregarPdI(@RequestBody PdIDTO pdi) {
         PdIDTO procesada = fachada.agregar(pdi);
         return ResponseEntity.status(HttpStatus.CREATED).body(procesada);
     }
+
 }

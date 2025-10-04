@@ -13,6 +13,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 
 public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
@@ -98,5 +101,19 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
     @Override
     public void setFachadaSolicitudes(FachadaSolicitudes fachadaSolicitudes) {
+    }
+
+    @Override
+    public List<PdIDTO> obtenerTodos() {
+    try {
+        Response<List<PdIDTO>> response = service.obtenerTodos().execute();
+        if (response.isSuccessful() && response.body() != null) {
+            return response.body();
+        }
+        String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
+        throw new RuntimeException("Error en ProcesadorPdI (GET all): " + response.code() + " - " + error);
+    } catch (Exception e) {
+        throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
+    }
     }
 }

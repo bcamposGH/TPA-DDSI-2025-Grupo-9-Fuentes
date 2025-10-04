@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.app;
 
+import ar.edu.utn.dds.k3003.clients.SolicitudesProxy;
 import ar.edu.utn.dds.k3003.config.Metricas;
 import ar.edu.utn.dds.k3003.facades.FachadaFuente;
 import ar.edu.utn.dds.k3003.facades.FachadaProcesadorPdI;
@@ -34,6 +35,8 @@ public class Fachada implements FachadaFuente {
     private FachadaProcesadorPdI procesadorPdI;
     @Autowired
     private Metricas metrics;
+    @Autowired
+    private SolicitudesProxy solicitudesProxy;
 
     protected Fachada() {
     this.coleccionRepository = new ColeccionRepositoryMem();
@@ -215,4 +218,28 @@ public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
     // 2. Delegar directamente al ProcesadorPdI (proxy)
     return procesadorPdI.buscarPorHecho(hechoId);
   }
+
+  public List<PdIDTO> obtenerTodosLosPdIs() {
+    return procesadorPdI.obtenerTodos();
+  }
+
+  public List<HechoDTO> hechosSinSolicitudesPorColeccion(String coleccionId) {
+    // 1. Traer todos los hechos de la colección
+    List<HechoDTO> hechos = this.buscarHechosXColeccion(coleccionId);
+
+    // 2. Armar lista de IDs
+    List<String> ids = hechos.stream()
+            .map(HechoDTO::id)
+            .toList();
+
+    if (ids.isEmpty()) return List.of();
+
+    // 3. Consultar a Solicitudes
+    List<String> idsSinSolicitudes = solicitudesProxy.hechosSinSolicitudes(ids);
+
+    // 4. Filtrar hechos de la colección
+    return hechos.stream()
+            .filter(h -> idsSinSolicitudes.contains(h.id()))
+            .toList();
+ }
 }
