@@ -7,7 +7,6 @@ import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import retrofit2.Response;
@@ -32,8 +31,7 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
         // Configurar el ObjectMapper para fechas y nombres en snake_case
         objectMapper.registerModule(new JavaTimeModule()); // soporte para LocalDateTime
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // 🔑 serializa como string ISO-8601
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // fechas en formato ISO-8601
         this.objectMapper = objectMapper;
 
         var retrofit = new Retrofit.Builder()
