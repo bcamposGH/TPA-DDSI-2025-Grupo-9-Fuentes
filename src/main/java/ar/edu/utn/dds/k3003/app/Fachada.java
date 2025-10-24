@@ -11,6 +11,7 @@ import ar.edu.utn.dds.k3003.model.Coleccion;
 import ar.edu.utn.dds.k3003.model.Hecho;
 import ar.edu.utn.dds.k3003.repository.HechosRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -34,6 +35,8 @@ public class Fachada implements FachadaFuente {
     private Metricas metrics;
     @Autowired
     private SolicitudesProxy solicitudesProxy;
+    @Autowired
+    private EntityManager entityManager;
 
   @Autowired
   public Fachada(
@@ -158,8 +161,10 @@ public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
 
     // 4. Guardar el id en el Hecho
     hecho.agregarPdI(procesada.id());
-    hechosRepository.save(hecho);
-
+    System.out.println("🧠 Hecho encontrado: id=" + hecho.getId() + 
+                   ", titulo=" + hecho.getTitulo() + 
+                   ", clase=" + hecho.getClass().getName());
+    entityManager.merge(hecho);
     // 5. Retornar la PdI procesada
     return procesada;
 }
