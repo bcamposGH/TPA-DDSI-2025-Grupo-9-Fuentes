@@ -23,7 +23,8 @@ public class Pdi {
     private String descripcion;
     private String ubicacion;
     private LocalDateTime fecha;
-    private String contenido;
+    private String urlImagen;
+    private String textoImagen;
     @ElementCollection
     private List<String> etiquetas;
 
@@ -31,13 +32,14 @@ public class Pdi {
         // Constructor por defecto requerido por JPA
     }
 
-    public Pdi(String id, Hecho hecho, String descripcion, String ubicacion, LocalDateTime fecha, String contenido, List<String> etiquetas) {
+    public Pdi(String id, Hecho hecho, String descripcion, String ubicacion, LocalDateTime fecha, String urlImagen, String textoImagen, List<String> etiquetas) {
         this.id = id;
         this.hecho = hecho;
         this.descripcion = descripcion;
         this.ubicacion = ubicacion;
         this.fecha = fecha;
-        this.contenido = contenido;
+        this.urlImagen = urlImagen;
+        this.textoImagen = textoImagen;
         this.etiquetas = etiquetas;
     }
 
@@ -82,12 +84,20 @@ public class Pdi {
         this.fecha = fecha;
     }
 
-    public String getContenido() {
-        return contenido;
+    public String getUrlImagen() {
+        return urlImagen;
     }
 
-    public void setContenido(String contenido) {
-        this.contenido = contenido;
+    public void setUrlImagen(String urlImagen) {
+        this.urlImagen = urlImagen;
+    }
+
+    public String getTextoImagen() {
+        return textoImagen;
+    }
+
+    public void setTextoImagen(String textoImagen) {
+        this.textoImagen = textoImagen;
     }
 
     public List<String> getEtiquetas() {

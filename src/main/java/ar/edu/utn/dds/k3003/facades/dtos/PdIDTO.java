@@ -5,18 +5,19 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record PdIDTO(String id, @JsonProperty("hechoId") String hechoId, String descripcion, String lugar, LocalDateTime momento, String contenido, List<String> etiquetas) {
+public record PdIDTO(String id, @JsonProperty("hechoId") String hechoId, String descripcion, String lugar, LocalDateTime momento, String urlImagen, String textoImagen, List<String> etiquetas) {
    public PdIDTO(String id, String hechoId) {
-      this(id, hechoId, (String)null, (String)null, (LocalDateTime)null, (String)null, List.of());
+      this(id, hechoId, (String)null, (String)null, (LocalDateTime)null, (String)null, (String)null, List.of());
    }
 
-   public PdIDTO(String id, String hechoId, String descripcion, String lugar, LocalDateTime momento, String contenido, List<String> etiquetas) {
+   public PdIDTO(String id, String hechoId, String descripcion, String lugar, LocalDateTime momento, String urlImagen, String textoImagen, List<String> etiquetas) {
       this.id = id;
       this.hechoId = hechoId;
       this.descripcion = descripcion;
       this.lugar = lugar;
       this.momento = momento;
-      this.contenido = contenido;
+      this.urlImagen = urlImagen;
+      this.textoImagen = textoImagen;
       this.etiquetas = etiquetas;
    }
 
@@ -40,8 +41,12 @@ public record PdIDTO(String id, @JsonProperty("hechoId") String hechoId, String 
       return this.momento;
    }
 
-   public String contenido() {
-      return this.contenido;
+   public String urlImagen() {
+      return this.urlImagen;
+   }
+
+   public String textoImagen() {
+      return this.textoImagen;
    }
 
    public List<String> etiquetas() {

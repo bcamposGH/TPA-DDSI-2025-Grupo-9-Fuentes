@@ -154,7 +154,8 @@ public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
         pdIDTO.descripcion(),
         pdIDTO.lugar(),
         pdIDTO.momento(),
-        pdIDTO.contenido(),
+        pdIDTO.urlImagen(),
+        pdIDTO.textoImagen(),
         pdIDTO.etiquetas()
     );
 
