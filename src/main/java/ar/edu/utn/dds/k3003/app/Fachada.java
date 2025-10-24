@@ -11,9 +11,6 @@ import ar.edu.utn.dds.k3003.model.Coleccion;
 import ar.edu.utn.dds.k3003.model.Hecho;
 import ar.edu.utn.dds.k3003.repository.HechosRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepository;
-import ar.edu.utn.dds.k3003.repository.ColeccionRepositoryMem;
-import ar.edu.utn.dds.k3003.repository.HechosRepositoryMem;
-import ar.edu.utn.dds.k3003.repository.PdIRepositoryMem;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -38,11 +35,7 @@ public class Fachada implements FachadaFuente {
     @Autowired
     private SolicitudesProxy solicitudesProxy;
 
-    protected Fachada() {
-    this.coleccionRepository = new ColeccionRepositoryMem();
-    this.hechosRepository = new HechosRepositoryMem();
-    new PdIRepositoryMem();
-  }
+    protected Fachada() {}
 
   @Autowired
   public Fachada(
