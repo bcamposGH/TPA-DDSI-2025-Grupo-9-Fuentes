@@ -13,6 +13,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -105,15 +106,24 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
 
     @Override
     public List<PdIDTO> obtenerTodos() {
-    try {
-        Response<List<PdIDTO>> response = service.obtenerTodos().execute();
-        if (response.isSuccessful() && response.body() != null) {
-            return response.body();
+        try {
+            Response<List<PdIDTO>> response = service.obtenerTodos().execute();
+
+            if (response.isSuccessful()) {
+                List<PdIDTO> body = response.body();
+                if (body != null) {
+                    return body;
+                }
+                throw new RuntimeException("ProcesadorPdI devolvió una respuesta vacía (sin body)");
+            }
+
+            String errorBody = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
+            throw new RuntimeException("Error en ProcesadorPdI (GET all): " + response.code() + " - " + errorBody);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error de red al conectar con ProcesadorPdI", e);
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
         }
-        String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
-        throw new RuntimeException("Error en ProcesadorPdI (GET all): " + response.code() + " - " + error);
-    } catch (Exception e) {
-        throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
-    }
     }
 }
