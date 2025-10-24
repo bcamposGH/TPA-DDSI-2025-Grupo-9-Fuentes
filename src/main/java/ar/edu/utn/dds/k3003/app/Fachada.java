@@ -35,8 +35,6 @@ public class Fachada implements FachadaFuente {
     @Autowired
     private SolicitudesProxy solicitudesProxy;
 
-    protected Fachada() {}
-
   @Autowired
   public Fachada(
       ColeccionRepository coleccionRepository,
