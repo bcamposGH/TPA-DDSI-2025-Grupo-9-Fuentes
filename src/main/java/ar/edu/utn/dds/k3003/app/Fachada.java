@@ -10,6 +10,8 @@ import ar.edu.utn.dds.k3003.facades.dtos.PdIDTO;
 import ar.edu.utn.dds.k3003.model.Coleccion;
 import ar.edu.utn.dds.k3003.model.Hecho;
 import ar.edu.utn.dds.k3003.repository.HechosRepository;
+import ar.edu.utn.dds.k3003.repository.JpaColeccionRepository;
+import ar.edu.utn.dds.k3003.repository.JpaHechosRepository;
 import ar.edu.utn.dds.k3003.repository.ColeccionRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -28,8 +30,8 @@ import lombok.val;
 public class Fachada implements FachadaFuente {
 
     // Repositorios JPA
-    private ColeccionRepository coleccionRepository;
-    private HechosRepository hechosRepository;
+    private JpaColeccionRepository coleccionRepository;
+    private JpaHechosRepository hechosRepository;
     private FachadaProcesadorPdI procesadorPdI;
     @Autowired
     private Metricas metrics;
@@ -40,8 +42,8 @@ public class Fachada implements FachadaFuente {
 
   @Autowired
   public Fachada(
-      ColeccionRepository coleccionRepository,
-      HechosRepository hechosRepository,
+      JpaColeccionRepository coleccionRepository,
+      JpaHechosRepository hechosRepository,
       @Autowired(required = false) FachadaProcesadorPdI procesadorPdI
       ){
         this.coleccionRepository = coleccionRepository;
