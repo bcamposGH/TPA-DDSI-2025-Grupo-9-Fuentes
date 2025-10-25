@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Map;
 import java.util.List;
 
@@ -90,32 +92,55 @@ public class HechoController {
 }
 
     @PostMapping("/pdis")
-    public ResponseEntity<PdIDTO> agregarPdI(@RequestBody PdIDTO pdi) {
+    public ResponseEntity<?> agregarPdI(@RequestBody PdIDTO pdi) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
         System.out.println("[Fuente API] POST /api/pdis recibido con body:");
         try {
-            System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(pdi));
+            System.out.println(mapper.writeValueAsString(pdi));
         } catch (Exception e) {
-            System.out.println(" No se pudo serializar el PdIDTO para log: " + e.getMessage());
+            System.out.println("No se pudo serializar el PdIDTO para log: " + e.getMessage());
         }
 
         try {
-            // Enviamos a la fachada
             System.out.println("[Fuente → Fachada] Llamando a Fachada.agregar(...)");
             PdIDTO procesada = fachada.agregar(pdi);
 
             System.out.println("[Fachada → Fuente API] Respuesta recibida del ProcesadorPdI:");
             try {
-                System.out.println(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(procesada));
+                System.out.println(mapper.writeValueAsString(procesada));
             } catch (Exception e) {
                 System.out.println("No se pudo serializar la respuesta para log: " + e.getMessage());
             }
 
             return ResponseEntity.status(HttpStatus.CREATED).body(procesada);
 
-        } catch (Exception e) {
-            System.out.println("[Fuente API] Error al procesar PdI: " + e.getMessage());
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            System.out.println("[Fuente API] Error en ProcesadorPdI: " + e.getReason());
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+
+            return ResponseEntity
+                    .status(e.getStatusCode())
+                    .body(Map.of(
+                            "status", e.getStatusCode().value(),
+                            "error", ((HttpStatus) e.getStatusCode()).getReasonPhrase(),
+                            "message", e.getReason()
+                    ));
+
+        } catch (Exception e) {
+            // ✅ Errores no controlados
+            System.out.println("[Fuente API] Error inesperado al procesar PdI: " + e.getMessage());
+            e.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", 500,
+                            "error", "Internal Server Error",
+                            "message", e.getMessage()
+                    ));
         }
     }
 

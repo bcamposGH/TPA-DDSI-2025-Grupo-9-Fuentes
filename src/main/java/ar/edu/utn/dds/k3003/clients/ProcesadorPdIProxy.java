@@ -27,27 +27,23 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
     private final ProcesadorPdIRetrofitClient service;
     private final ObjectMapper mapper;
 
-    @SuppressWarnings("deprecation")
     public ProcesadorPdIProxy(ObjectMapper ignored) {
         var env = System.getenv();
         this.endpoint = env.get("URL_PROCESADOR_PDI");
 
-        // 🔹 Configuración del ObjectMapper (sin snake_case, fechas ISO)
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new JavaTimeModule());
         this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
 
-        // 🔹 Configurar timeouts más amplios para evitar SocketTimeoutException
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
 
-        // 🔹 Retrofit con Jackson y cliente HTTP configurado
-        var retrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(this.endpoint)
                 .client(client)
                 .addConverterFactory(JacksonConverterFactory.create(this.mapper))
@@ -69,10 +65,12 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
                 return response.body();
             }
 
-            String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
+            String errorBody = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
+            System.out.println("⚠️ ProcesadorPdI → Error: " + response.code() + " - " + errorBody);
+
             throw new ResponseStatusException(
                     HttpStatus.valueOf(response.code()),
-                    "ProcesadorPdI → " + error
+                    "ProcesadorPdI → " + errorBody
             );
 
         } catch (SocketTimeoutException e) {
@@ -80,6 +78,29 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
                     HttpStatus.GATEWAY_TIMEOUT,
                     "ProcesadorPdI no respondió a tiempo (timeout)",
                     e
+            );
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo conectar con ProcesadorPdI: " + e.getMessage(),
+                    e
+            );
+        }
+    }
+
+    @Override
+    public PdIDTO buscarPdIPorId(String pdiId) {
+        try {
+            Response<PdIDTO> response = service.buscarPorId(pdiId).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                return response.body();
+            }
+            String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
+            throw new ResponseStatusException(
+                    HttpStatus.valueOf(response.code()),
+                    "Error al buscar PdI: " + error
             );
         } catch (Exception e) {
             throw new ResponseStatusException(
@@ -91,42 +112,23 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
     }
 
     @Override
-    public PdIDTO buscarPdIPorId(String pdiId) {
-        try {
-            Response<PdIDTO> response = service.buscarPorId(pdiId).execute();
-            System.out.println("Fuente → ProcesadorPdI (GET /pdis/" + pdiId + "): " + response.code());
-
-            if (response.isSuccessful() && response.body() != null) {
-                return response.body();
-            }
-
-            String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
-            throw new RuntimeException("PdI no encontrado o error en ProcesadorPdI: " + response.code() + " - " + error);
-
-        } catch (SocketTimeoutException e) {
-            throw new RuntimeException("Timeout al conectar con ProcesadorPdI", e);
-        } catch (Exception e) {
-            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
-        }
-    }
-
-    @Override
     public List<PdIDTO> buscarPorHecho(String hechoId) {
         try {
             Response<List<PdIDTO>> response = service.buscarPorHecho(hechoId).execute();
-            System.out.println("Fuente → ProcesadorPdI (GET /pdis?hecho=" + hechoId + "): " + response.code());
-
             if (response.isSuccessful() && response.body() != null) {
                 return response.body();
             }
-
             String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
-            throw new RuntimeException("PdIs no encontrados o error en ProcesadorPdI: " + response.code() + " - " + error);
-
-        } catch (SocketTimeoutException e) {
-            throw new RuntimeException("Timeout al conectar con ProcesadorPdI", e);
+            throw new ResponseStatusException(
+                    HttpStatus.valueOf(response.code()),
+                    "Error al buscar PdIs por hecho: " + error
+            );
         } catch (Exception e) {
-            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo conectar con ProcesadorPdI",
+                    e
+            );
         }
     }
 
@@ -134,23 +136,25 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
     public List<PdIDTO> obtenerTodos() {
         try {
             Response<List<PdIDTO>> response = service.obtenerTodos().execute();
-            System.out.println("Fuente → ProcesadorPdI (GET /pdis): " + response.code());
-
             if (response.isSuccessful() && response.body() != null) {
                 return response.body();
             }
-
             String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
-            throw new RuntimeException("Error en ProcesadorPdI (GET all): " + response.code() + " - " + error);
-
-        } catch (SocketTimeoutException e) {
-            throw new RuntimeException("Timeout al conectar con ProcesadorPdI", e);
+            throw new ResponseStatusException(
+                    HttpStatus.valueOf(response.code()),
+                    "Error al obtener PdIs: " + error
+            );
         } catch (Exception e) {
-            throw new RuntimeException("No se pudo conectar con ProcesadorPdI", e);
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo conectar con ProcesadorPdI",
+                    e
+            );
         }
     }
 
     @Override
     public void setFachadaSolicitudes(FachadaSolicitudes fachadaSolicitudes) {
+        // No implementado
     }
 }
