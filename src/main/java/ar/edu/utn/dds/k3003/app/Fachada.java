@@ -136,6 +136,9 @@ public class Fachada implements FachadaFuente {
 @Override
 @Transactional
 public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
+    System.out.println("🧩 Fachada.agregar(PdIDTO) - repo class: " +
+    (hechosRepository == null ? "NULL" : hechosRepository.getClass().getName()));
+    
     // 1. Validar que exista el hecho
     Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
         .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
@@ -161,10 +164,7 @@ public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
 
     // 4. Guardar el id en el Hecho
     hecho.agregarPdI(procesada.id());
-    System.out.println("🧠 Hecho encontrado: id=" + hecho.getId() + 
-                   ", titulo=" + hecho.getTitulo() + 
-                   ", clase=" + hecho.getClass().getName());
-    entityManager.merge(hecho);
+    hechosRepository.saveAndFlush(hecho); 
     // 5. Retornar la PdI procesada
     return procesada;
 }
