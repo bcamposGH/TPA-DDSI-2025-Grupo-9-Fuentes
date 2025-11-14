@@ -1,12 +1,14 @@
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM maven:3.8.6-openjdk-18 AS build
 WORKDIR /app
-COPY mvnw .
-COPY pom.xml .
-COPY src ./src
-RUN ./mvnw clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-alpine
+COPY . .
+RUN mvn clean package -DskipTests
+
+
+FROM openjdk:18-jdk-slim
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+COPY --from=build /app/target/my-app-name-1.0-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
