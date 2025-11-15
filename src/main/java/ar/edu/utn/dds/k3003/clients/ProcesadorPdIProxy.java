@@ -58,37 +58,46 @@ public class ProcesadorPdIProxy implements FachadaProcesadorPdI {
             String json = mapper.writeValueAsString(pdiDTO);
             System.out.println("Fuente → ProcesadorPdI (request JSON): " + json);
 
-            Response<PdIDTO> response = service.procesar(pdiDTO).execute();
+            retrofit2.Response<PdIDTO> response = service.procesar(pdiDTO).execute();
 
-            if (response.isSuccessful() && response.body() != null) {
-                System.out.println("ProcesadorPdI → Fuente (response OK): " + response.body());
+            // Caso 1: 200 OK con body vacío (nuevo comportamiento asincrónico)
+            if (response.isSuccessful()) {
+
+                boolean emptyBody =
+                    response.body() == null ||
+                    (response.errorBody() == null && response.raw().body().contentLength() == 0);
+
+                if (emptyBody) {
+                    System.out.println("ProcesadorPdI → OK (sin contenido). Procesamiento asincrónico aceptado.");
+                    return pdiDTO; // devolvemos el mismo DTO enviado
+                }
+
+                // Caso 2: 200 OK con body (por compatibilidad)
+                System.out.println("ProcesadorPdI → OK (con body).");
                 return response.body();
             }
 
-            String errorBody = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
-            System.out.println("ProcesadorPdI → Error: " + response.code() + " - " + errorBody);
+            // Caso 3: error HTTP
+            String error = response.errorBody() != null ? response.errorBody().string() : "sin detalle";
+            throw new RuntimeException("ProcesadorPdI → " + error);
 
-            throw new ResponseStatusException(
-                    HttpStatus.valueOf(response.code()),
-                    "ProcesadorPdI → " + errorBody
-            );
-
-        } catch (SocketTimeoutException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.GATEWAY_TIMEOUT,
-                    "ProcesadorPdI no respondió a tiempo (timeout)",
-                    e
-            );
-        } catch (ResponseStatusException e) {
-            throw e;
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
+            // Si el error es "No content to map", interpretarlo como OK vacío
+            if (e.getMessage() != null &&
+                e.getMessage().contains("No content to map")) {
+
+                System.out.println("ProcesadorPdI → OK (respuesta vacía detectada en catch).");
+                return pdiDTO;
+            }
+
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
                     "No se pudo conectar con ProcesadorPdI: " + e.getMessage(),
                     e
             );
         }
     }
+
 
     @Override
     public PdIDTO buscarPdIPorId(String pdiId) {
