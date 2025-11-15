@@ -133,48 +133,41 @@ public class Fachada implements FachadaFuente {
     this.procesadorPdI = procesador;
   }
 
-  @Override
-  @Transactional
-  public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
+@Override
+@Transactional
+public PdIDTO agregar(PdIDTO pdIDTO) throws IllegalStateException {
+    System.out.println("🧩 Fachada.agregar(PdIDTO) - repo class: " +
+    (hechosRepository == null ? "NULL" : hechosRepository.getClass().getName()));
+    
+    // 1. Validar que exista el hecho
+    Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
+        .orElseThrow(() -> new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
 
-      System.out.println("Fachada.agregar(PdIDTO) - repo class: " +
-              (hechosRepository == null ? "NULL" : hechosRepository.getClass().getName()));
+    // 2. Generar el id en la Fuente
+    String nuevoId = UUID.randomUUID().toString();
+    PdIDTO dtoConId = new PdIDTO(
+        nuevoId,
+        pdIDTO.hechoId(),
+        pdIDTO.descripcion(),
+        pdIDTO.lugar(),
+        pdIDTO.momento(),
+        pdIDTO.urlImagen(),
+        pdIDTO.textoImagen(),
+        pdIDTO.etiquetas()
+    );
 
-      // 1. Validar que exista el hecho
-      Hecho hecho = hechosRepository.findById(pdIDTO.hechoId())
-              .orElseThrow(() ->
-                      new NoSuchElementException("No existe el hecho con ID: " + pdIDTO.hechoId()));
-
-      // 2. Generar el ID propio
-      String nuevoId = UUID.randomUUID().toString();
-      PdIDTO dtoConId = new PdIDTO(
-              nuevoId,
-              pdIDTO.hechoId(),
-              pdIDTO.descripcion(),
-              pdIDTO.lugar(),
-              pdIDTO.momento(),
-              pdIDTO.urlImagen(),
-              pdIDTO.textoImagen(),
-              pdIDTO.etiquetas()
-      );
-
-      // 3. Enviar al ProcesadorPdI (ASÍNCRONO: solo importa que acepte el request)
-      try {
-          procesadorPdI.procesar(dtoConId); // solo verificar que no falle
-          System.out.println("ProcesadorPdI aceptó la PdI " + nuevoId);
-      } catch (Exception e) {
-          System.out.println("Error al enviar PdI al ProcesadorPdI: " + e.getMessage());
-          throw new IllegalStateException("No se pudo enviar la PdI al procesador", e);
-      }
-
-      // 4. Guardar el ID en el hecho
-      hecho.agregarPdI(nuevoId);
-      hechosRepository.save(hecho);
-
-      // 5. Retornar la PdI enviada (no procesada)
-      return dtoConId;
+    // 3. Enviar al Procesador para que valide/persista
+    PdIDTO procesada = procesadorPdI.procesar(dtoConId);
+    if (procesada == null) {
+    procesada = dtoConId;
   }
 
+    // 4. Guardar el id en el Hecho
+    hecho.agregarPdI(procesada.id());
+    hechosRepository.save(hecho); 
+    // 5. Retornar la PdI procesada
+    return procesada;
+}
 
 
   public void censurar(String hechoId) {
