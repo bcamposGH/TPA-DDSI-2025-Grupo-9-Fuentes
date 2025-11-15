@@ -23,7 +23,7 @@ public class MessagingController {
     public ResponseEntity<String> start() {
         try {
             suscriber.start();
-            return ResponseEntity.ok("✅ Suscripción activada");
+            return ResponseEntity.ok("Suscripción activada");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
@@ -38,7 +38,7 @@ public class MessagingController {
     public ResponseEntity<String> stop() {
         try {
             suscriber.stop();
-            return ResponseEntity.ok("⏹️ Suscripción detenida");
+            return ResponseEntity.ok("⏹Suscripción detenida");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
@@ -51,6 +51,6 @@ public class MessagingController {
      */
     @GetMapping("/status")
     public ResponseEntity<String> status() {
-        return ResponseEntity.ok("Estado actual: " + (suscriber.isActivo() ? "Activo ✅" : "Inactivo ⏹️"));
+        return ResponseEntity.ok("Estado actual: " + (suscriber.isActivo() ? "Activo" : "Inactivo"));
     }
 }

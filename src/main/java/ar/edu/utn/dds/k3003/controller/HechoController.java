@@ -130,7 +130,6 @@ public class HechoController {
                     ));
 
         } catch (Exception e) {
-            // ✅ Errores no controlados
             System.out.println("[Fuente API] Error inesperado al procesar PdI: " + e.getMessage());
             e.printStackTrace();
 
@@ -144,4 +143,4 @@ public class HechoController {
         }
     }
 
-}
+}  

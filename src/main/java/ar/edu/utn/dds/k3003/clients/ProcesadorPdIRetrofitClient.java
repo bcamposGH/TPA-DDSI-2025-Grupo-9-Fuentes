@@ -1,7 +1,6 @@
 package ar.edu.utn.dds.k3003.clients;
 import retrofit2.Call;
 import retrofit2.http.*;
-import retrofit2.http.Query;
 
 import java.util.List;
 
@@ -17,6 +16,6 @@ public interface ProcesadorPdIRetrofitClient {
     @GET("pdis")
     Call<List<PdIDTO>> buscarPorHecho(@Query("hecho") String hechoId);
 
-    @POST("pdis")
-    Call<PdIDTO> procesar(@Body PdIDTO pdi);
+    @POST("/pdis")
+    Call<Void> procesarAsync(@Body PdIDTO pdiDTO);
 }
